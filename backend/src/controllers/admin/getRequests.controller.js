@@ -1,4 +1,0 @@
-import {sql} from '../../config/db.js';
-export async function dashboard(req,res){const [u,e,p,r]=await Promise.all([sql`SELECT COUNT(*)::int AS count FROM users`,sql`SELECT COUNT(*)::int AS count FROM events`,sql`SELECT COUNT(*)::int AS count FROM events WHERE approval_status='pending'`,sql`SELECT COUNT(*)::int AS count FROM event_registrations`]);res.json({users:u[0].count,events:e[0].count,pending_events:p[0].count,registrations:r[0].count});}
-export async function pendingEvents(req,res){const rows=await sql`SELECT e.*,u.name AS organizer_name FROM events e JOIN users u ON u.user_id=e.organizer_id WHERE e.approval_status='pending' ORDER BY e.created_at ASC`;res.json(rows);}
-export async function users(req,res){const rows=await sql`SELECT user_id,name,email,role,img_url,created_at FROM users ORDER BY created_at DESC`;res.json(rows);}

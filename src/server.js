@@ -1,0 +1,10 @@
+import express from 'express'; import cors from 'cors';
+import {PORT} from './config/env.js'; import {pool} from './config/db.js';
+import authRoutes from './routes/auth.route.js'; import eventRoutes from './routes/events.route.js'; import meRoutes from './routes/me.route.js'; import adminRoutes from './routes/admin.route.js';
+const app=express(); app.use(cors({origin:true,credentials:true})); app.use(express.json({limit:'2mb'}));
+app.get('/api/health',(req,res)=>res.json({status:'ok'}));
+app.use('/api/auth',authRoutes); app.use('/api/events',eventRoutes); app.use('/api/me',meRoutes); app.use('/api/admin',adminRoutes);
+app.use((req,res)=>res.status(404).json({error:'Route not found'}));
+app.use((err,req,res,next)=>{console.error(err);res.status(500).json({error:'Internal server error'});});
+pool.query('SELECT 1').then(()=>console.log('Database connected')).catch(e=>console.error('Database connection failed:',e.message));
+app.listen(PORT,()=>console.log(`API running on http://localhost:${PORT}`));

@@ -1,0 +1,5 @@
+import { query } from '../config/db.js';
+export async function users(req,res){ const {rows}=await query(`SELECT id,name,email,role,img_url,created_at FROM users ORDER BY created_at DESC`); res.json({data:rows}); }
+export async function updateUser(req,res){ const {role}=req.body||{}; if(!['user','organizer','admin'].includes(role)) return res.status(400).json({error:'Invalid role'}); const {rows}=await query(`UPDATE users SET role=$1 WHERE id=$2 RETURNING id,name,email,role,img_url,created_at`,[role,req.params.id]); if(!rows[0]) return res.status(404).json({error:'User not found'}); res.json({data:rows[0]}); }
+export async function leaderboard(req,res){ const {rows}=await query(`SELECT * FROM leaderboard_rewards()`); res.json({data:rows}); }
+export async function analytics(req,res){ const {rows}=await query(`SELECT count(*)::int "totalEvents" FROM events`); const {rows:r}=await query(`SELECT count(*)::int "totalRegistrations" FROM event_registrations`); const {rows:m}=await query(`SELECT * FROM monthly_registrations()`); res.json({data:{totalEvents:rows[0].totalEvents,totalRegistrations:r[0].totalRegistrations,registrationsByMonth:m}}); }
