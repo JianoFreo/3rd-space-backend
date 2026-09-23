@@ -1,0 +1,1 @@
+import {Router} from 'express';import {auth,role} from '../middlewares/auth.middleware.js';import {getEvents} from '../controllers/events/getRequests.controller.js';const r=Router();r.get('/events',auth,role('organizer'),(req,res)=>{req.query.mine='1';return getEvents(req,res)});export default r;

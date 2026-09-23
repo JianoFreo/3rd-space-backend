@@ -1,0 +1,1 @@
+import {WebSocketServer} from 'ws';export function initWebSocket(server){const wss=new WebSocketServer({server,path:'/ws'});wss.on('connection',ws=>ws.send(JSON.stringify({type:'connected'})));return wss}

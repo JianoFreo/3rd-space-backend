@@ -1,0 +1,1 @@
+import {Router} from 'express';import {auth} from '../middlewares/auth.middleware.js';import {me} from '../controllers/user/getRequests.controller.js';const r=Router();r.get('/me',auth,me);export default r;

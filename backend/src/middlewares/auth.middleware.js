@@ -1,0 +1,3 @@
+import jwt from 'jsonwebtoken';import {ENV} from '../config/env.js';import {supabase} from '../config/db.js';
+export async function auth(req,res,next){try{const h=req.headers.authorization||'';if(!h.startsWith('Bearer ')) return res.status(401).json({message:'Authentication required'});const p=jwt.verify(h.slice(7),ENV.JWT_SECRET);const {data:user,error}=await supabase.from('users').select('id,name,email,role,img_url,created_at').eq('id',p.id).single();if(error||!user)return res.status(401).json({message:'Invalid session'});req.user=user;next()}catch(e){res.status(401).json({message:'Invalid or expired token'})}}
+export function role(...roles){return (req,res,next)=>roles.includes(req.user?.role)?next():res.status(403).json({message:'Forbidden'})}
