@@ -1,2 +1,9 @@
+import fs from 'fs/promises';
 import cloudinary from '../config/cloudinary.js';
-export function uploadImage(file,folder='community-connect'){return new Promise((resolve,reject)=>{if(!file||!cloudinary.config().cloud_name)return resolve(null);const s=cloudinary.uploader.upload_stream({folder,resource_type:'image'},(e,r)=>e?reject(e):resolve(r.secure_url));s.end(file.buffer)})}
+import {ENV} from '../config/env.js';
+export async function uploadImage(file){
+  if(!file) return null;
+  if(!ENV.CLOUDINARY_CLOUD_NAME){await fs.unlink(file.path).catch(()=>{});return null;}
+  const result=await cloudinary.uploader.upload(file.path,{folder:'community-connect/events',resource_type:'image'});
+  await fs.unlink(file.path).catch(()=>{}); return result.secure_url;
+}

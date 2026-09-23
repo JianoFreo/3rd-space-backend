@@ -1,1 +1,1 @@
-import {Router} from 'express';import {login,register} from '../controllers/auth/postRequests.controller.js';const r=Router();r.post('/register',register);r.post('/login',login);export default r;
+import {Router} from 'express';import {register,login} from '../controllers/auth/postRequests.controller.js';import {asyncHandler} from '../utils/asyncHandler.js';const router=Router();router.post('/register',asyncHandler(register));router.post('/login',asyncHandler(login));export default router;

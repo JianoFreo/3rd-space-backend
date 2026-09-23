@@ -1,0 +1,1 @@
+import {Navigate,useLocation} from 'react-router';import {getStoredUser} from '../lib/axios.js';export default function ProtectRoute({roles,children}){const user=getStoredUser();const location=useLocation();if(!user)return <Navigate to="/login" state={{from:location.pathname}} replace/>;if(roles&&!roles.includes(user.role))return <Navigate to="/" replace/>;return children;}

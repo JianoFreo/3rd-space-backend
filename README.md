@@ -1,41 +1,82 @@
-# MeetUp Community — Monolithic React + Express + Supabase
+# MeetUp — Community & Social Good
 
-A JavaScript-only community event discovery platform based on the same MVC-inspired architecture used by TechCare.
+A monolithic community event discovery platform built to follow the **TechCare architecture**, but written entirely in **JavaScript/JSX** instead of TypeScript.
 
 ## Stack
-- React 19 + Vite + Tailwind CSS
-- Express 5 + ESM JavaScript
-- Supabase PostgreSQL via `@supabase/supabase-js` (service role used only by backend)
+- Node.js + Express 5 + ESM
+- Neon PostgreSQL using `@neondatabase/serverless` tagged-template SQL
 - JWT + bcryptjs authentication
 - Multer + optional Cloudinary image storage
-- Leaflet + OpenStreetMap
-- WebSocket scaffold
-
-## Roles
-- **User:** discover, register, attend, review, earn rewards
-- **Organizer:** create events and manage their events/attendance
-- **Admin:** approve/reject events and view platform metrics
+- React 19 + Vite + Tailwind CSS 4
+- React Router + Axios + Lucide
+- OpenStreetMap + Leaflet + Nominatim
+- WebSocket (`ws`)
 
 ## Architecture
-Browser → React → Axios → Express Routes → Middleware → Controllers → Supabase PostgreSQL
+```text
+community-connect/
+├── backend/
+│   ├── package.json
+│   └── src/
+│       ├── server.js
+│       ├── websocket.js
+│       ├── config/{db.js,env.js,cloudinary.js}
+│       ├── middlewares/{auth.middleware.js,admin.middleware.js,multer.middleware.js}
+│       ├── routes/{auth.route.js,admin.route.js,event.route.js,organizer.route.js,user.route.js,test.routes.js,doctor.route.js,labstaff.route.js,patient.route.js}
+│       ├── controllers/{auth/,admin/,events/,reviews/,user/}
+│       └── utils/{generateId.js,jwt.js,upload.js,asyncHandler.js}
+├── frontend/
+│   └── src/
+│       ├── main.jsx / App.jsx
+│       ├── auth/
+│       ├── components/ui/
+│       ├── events/
+│       ├── map/
+│       └── users/{admin,organizer,user}/
+└── .env.example
+```
 
-The backend serves `frontend/dist` in production, making the application a single deployable Node service.
+## Neon setup
+Create a Neon database and put the connection string in `.env` as `DATABASE_URL`. The backend automatically runs `CREATE TABLE IF NOT EXISTS` statements during startup, matching the TechCare pattern. The database layer is Neon PostgreSQL only.
 
-## Setup
-1. Create a Supabase project.
-2. Run `supabase/schema.sql` in the Supabase SQL Editor.
-3. Copy `.env.example` to `backend/.env` and fill in Supabase URL, service-role key, and JWT secret.
-4. `npm install --prefix backend`
-5. `npm install --prefix frontend`
-6. `npm run dev`
-7. Open `http://localhost:5173`.
+## Run
+```bash
+npm install --prefix backend
+npm install --prefix frontend
+# copy .env.example to backend/.env and set DATABASE_URL/JWT_SECRET
+npm run dev
+# in a second terminal for Vite HMR:
+cd frontend && npm run dev
+```
 
-## Admin account
-Registration intentionally allows only `user` and `organizer`. After registering a first account, change its `role` to `admin` in Supabase SQL Editor:
+For production:
+```bash
+npm run build
+npm start
+```
 
-`update users set role = 'admin' where email = 'your-email@example.com';`
+To create an admin, register normally, then run:
+```sql
+UPDATE users SET role='admin' WHERE email='your-email@example.com';
+```
 
-## OpenStreetMap
-The app uses Leaflet with OpenStreetMap tiles and attribution. Event creation lets organizers click the map to save latitude/longitude. The backend also exposes a Nominatim geocoding endpoint at `/api/events/geocode` for future address search UI.
+## API
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/events`
+- `GET /api/events/:id`
+- `GET /api/events/geocode?q=...`
+- `POST /api/events` organizer
+- `POST /api/events/:id/register` authenticated user
+- `POST /api/events/:id/reviews` authenticated user
+- `GET /api/admin/dashboard` admin
+- `GET /api/admin/events/pending` admin
+- `PATCH /api/admin/events/:id/approval` admin
+- `GET /api/organizer/events` organizer
+- `GET /api/organizer/events/:id/registrations` organizer
+- `PATCH /api/organizer/registrations/:id/attendance` organizer
+- `GET /api/users/me`
+- `GET /api/users/registrations`
+- `GET /api/users/rewards`
 
-Do not expose the Supabase service-role key to the frontend.
+The public map uses OpenStreetMap tiles and Nominatim for address lookup. Follow OpenStreetMap/Nominatim usage policies when deploying at scale.

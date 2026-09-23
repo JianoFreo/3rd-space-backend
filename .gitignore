@@ -1,6 +1,5 @@
-node_modules/
+node_modules
 .env
-backend/.env
-frontend/.env
-frontend/dist/
-backend/uploads/
+frontend/dist
+backend/uploads
+*.log

@@ -1,1 +1,1 @@
-import {WebSocketServer} from 'ws';export function initWebSocket(server){const wss=new WebSocketServer({server,path:'/ws'});wss.on('connection',ws=>ws.send(JSON.stringify({type:'connected'})));return wss}
+import {WebSocketServer} from 'ws';export function initWebSocket(server){const wss=new WebSocketServer({server,path:'/ws'});wss.on('connection',socket=>{socket.send(JSON.stringify({type:'connected',message:'Community Connect realtime channel ready'}));});return wss;}

@@ -1,0 +1,1 @@
+import {Router} from 'express';import {auth} from '../middlewares/auth.middleware.js';const router=Router();router.get('/health',auth,(req,res)=>res.json({message:'Authenticated test route',user:req.user}));export default router;

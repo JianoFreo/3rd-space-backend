@@ -1,3 +1,19 @@
-import {supabase} from '../../config/db.js';import {uploadImage} from '../../utils/upload.js';
-export async function createEvent(req,res){try{const b=req.body;const img_url=await uploadImage(req.file,'community-connect/events');const row={title:b.title,event_category:b.event_category,description:b.description,location:b.location,start_date:b.start_date,end_date:b.end_date,time:b.time,capacity:b.capacity?Number(b.capacity):null,reward_type:b.reward_type||null,modality:b.modality,status:'open',approval_status:'pending',organizer_id:req.user.id,img_url,latitude:b.latitude?Number(b.latitude):null,longitude:b.longitude?Number(b.longitude):null};const {data,error}=await supabase.from('events').insert(row).select('*').single();if(error)throw error;res.status(201).json(data)}catch(e){res.status(500).json({message:e.message})}}
-export async function registerForEvent(req,res){const {data:event,error:ee}=await supabase.from('events').select('id,capacity,status,approval_status').eq('id',req.params.id).single();if(ee||event.approval_status!=='approved'||event.status!=='open')return res.status(400).json({message:'Event is not available'});const {count}=await supabase.from('event_registrations').select('*',{count:'exact',head:true}).eq('event_id',event.id);if(event.capacity&&count>=event.capacity)return res.status(409).json({message:'Event is full'});const {data,error}=await supabase.from('event_registrations').insert({event_id:event.id,user_id:req.user.id}).select().single();if(error)return res.status(409).json({message:'Already registered or registration failed'});res.status(201).json(data)}
+import {sql} from '../../config/db.js';
+import {makeEventId} from '../../utils/generateId.js';
+import {uploadImage} from '../../utils/upload.js';
+export async function createEvent(req,res){
+  const {title,event_category,description,location,latitude,longitude,start_date,end_date,event_time,capacity,reward_type,modality='in-person'}=req.body;
+  if(!title||!event_category||!description||!start_date||!end_date) return res.status(400).json({message:'Title, category, description and dates are required'});
+  const count=await sql`SELECT COUNT(*)::int AS count FROM events`; const event_id=makeEventId((count[0]?.count||0)+1);
+  const img_url=await uploadImage(req.file);
+  const rows=await sql`INSERT INTO events(event_id,title,event_category,description,location,latitude,longitude,start_date,end_date,event_time,capacity,reward_type,modality,organizer_id,img_url)
+    VALUES(${event_id},${title},${event_category},${description},${location||null},${latitude?Number(latitude):null},${longitude?Number(longitude):null},${start_date},${end_date},${event_time||null},${Number(capacity||0)},${reward_type||null},${modality},${req.user.user_id},${img_url}) RETURNING *`;
+  res.status(201).json({message:'Event submitted for approval',event:rows[0]});
+}
+export async function registerEvent(req,res){
+  const event=await sql`SELECT * FROM events WHERE event_id=${req.params.id} AND approval_status='approved' LIMIT 1`; if(!event[0]) return res.status(404).json({message:'Event not found'});
+  const count=await sql`SELECT COUNT(*)::int AS count FROM event_registrations WHERE event_id=${req.params.id}`;
+  if(event[0].capacity>0 && count[0].count>=event[0].capacity) return res.status(409).json({message:'Event is full'});
+  try{const rows=await sql`INSERT INTO event_registrations(event_id,user_id) VALUES(${req.params.id},${req.user.user_id}) RETURNING *`;res.status(201).json({message:'Registered successfully',registration:rows[0]});}
+  catch(e){if(e.code==='23505') return res.status(409).json({message:'You are already registered'});throw e;}
+}
