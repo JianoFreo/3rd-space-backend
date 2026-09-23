@@ -1,7 +1,5 @@
 # MeetUp — Community & Social Good
 
-A monolithic community event discovery platform built to follow the **TechCare architecture**, but written entirely in **JavaScript/JSX** instead of TypeScript.
-
 ## Stack
 - Node.js + Express 5 + ESM
 - Neon PostgreSQL using `@neondatabase/serverless` tagged-template SQL
