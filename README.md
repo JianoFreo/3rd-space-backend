@@ -2,7 +2,7 @@
 
 ## Stack
 - Node.js + Express 5 + ESM
-- Neon PostgreSQL using `@neondatabase/serverless` tagged-template SQL
+- Neon PostgreSQL
 - JWT + bcryptjs authentication
 - Multer + optional Cloudinary image storage
 - React 19 + Vite + Tailwind CSS 4
@@ -34,29 +34,6 @@ community-connect/
 └── .env.example
 ```
 
-## Neon setup
-Create a Neon database and put the connection string in `.env` as `DATABASE_URL`. The backend automatically runs `CREATE TABLE IF NOT EXISTS` statements during startup, matching the TechCare pattern. The database layer is Neon PostgreSQL only.
-
-## Run
-```bash
-npm install --prefix backend
-npm install --prefix frontend
-# copy .env.example to backend/.env and set DATABASE_URL/JWT_SECRET
-npm run dev
-# in a second terminal for Vite HMR:
-cd frontend && npm run dev
-```
-
-For production:
-```bash
-npm run build
-npm start
-```
-
-To create an admin, register normally, then run:
-```sql
-UPDATE users SET role='admin' WHERE email='your-email@example.com';
-```
 
 ## API
 - `POST /api/auth/register`
